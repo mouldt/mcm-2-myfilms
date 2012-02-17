@@ -39,7 +39,7 @@ namespace MCM2MyFilms
             Country = contents.Element("Country").Value;
             Description = contents.Element("Description").Value;
             Director = contents.Element("Director").Value;
-            Tagline = contents.Element("Tagline").Value;
+            Tagline = contents.Element("Tagline") != null ? contents.Element("Tagline").Value : contents.Element("TagLine").Value;
             foreach (XElement person in contents.Element("Persons").Elements("Person"))
             {
                 Person newPerson = new Person();
