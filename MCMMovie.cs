@@ -30,30 +30,30 @@ namespace MCM2MyFilms
             Initialize();
             XDocument metadata = XDocument.Load(Path.Combine(path, "mymovies.xml"));
             XElement contents = metadata.Descendants("Title").First();
-            LocalTitle = contents.Element("LocalTitle").Value;
-            OriginalTitle = contents.Element("OriginalTitle").Value;
-            IMDBrating = float.Parse(contents.Element("IMDBrating").Value);
-            ProductionYear = int.Parse(contents.Element("ProductionYear").Value);
-            IMDBId = contents.Element("IMDbId").Value;
-            Language = contents.Element("Language").Value;
-            Country = contents.Element("Country").Value;
-            Description = contents.Element("Description").Value;
-            Director = contents.Element("Director").Value;
-            Tagline = contents.Element("Tagline") != null ? contents.Element("Tagline").Value : contents.Element("TagLine").Value;
-            foreach (XElement person in contents.Element("Persons").Elements("Person"))
+            LocalTitle = contents.ElementByNames("LocalTitle").Value;
+            OriginalTitle = contents.ElementByNames("OriginalTitle").Value;
+            IMDBrating = float.Parse(contents.ElementByNames("IMDBrating").Value);
+            ProductionYear = int.Parse(contents.ElementByNames("ProductionYear").Value);
+            IMDBId = contents.ElementByNames("IMDbId").Value;
+            Language = contents.ElementByNames("Language").Value;
+            Country = contents.ElementByNames("Country").Value;
+            Description = contents.ElementByNames("Description").Value;
+            Director = contents.ElementByNames("Director").Value;
+            Tagline = contents.ElementByNames("Tagline", "TagLine").Value;
+            foreach (XElement person in contents.ElementByNames("Persons").ElementsByNames("Person"))
             {
                 Person newPerson = new Person();
-                newPerson.Name = person.Element("Name").Value;
-                try{ newPerson.Type = (Person.PersonType)Enum.Parse(typeof(Person.PersonType), person.Element("Type").Value); }
+                newPerson.Name = person.ElementByNames("Name").Value;
+                try { newPerson.Type = (Person.PersonType)Enum.Parse(typeof(Person.PersonType), person.ElementByNames("Type").Value); }
                 catch (ArgumentException)
                 {
                     newPerson.Type = Person.PersonType.Other;
-                    newPerson.PersonTypeOther = person.Element("Type").Value;
+                    newPerson.PersonTypeOther = person.ElementByNames("Type").Value;
                 }
-                newPerson.Role = person.Element("Role").Value;
+                newPerson.Role = person.ElementByNames("Role").Value;
                 Persons.Add(newPerson);
             }
-            foreach (string genre in contents.Element("Genres").Elements("Genre"))
+            foreach (string genre in contents.ElementByNames("Genres").ElementsByNames("Genre"))
                 Genres.Add(genre);
             
         }
@@ -86,5 +86,39 @@ namespace MCM2MyFilms
         public String Tagline { get; set; }
         public List<Person> Persons { get; set; }
         public List<String> Genres { get; set; }
+
+    }
+
+    public static class LinqToXMLExtensions
+    {
+        public static XElement ElementByNames(this XElement element, params string[] namestofind)
+        {
+            foreach (string name in namestofind)
+            {
+                XElement testElem = element.Element(name);
+                if (testElem != null)
+                    return testElem;
+            }
+            throw new Exception(String.Format("Unable to find any element with names: {0}", String.Join(", ", namestofind)));
+        }
+
+        public static IEnumerable<XElement> ElementsByNames(this XElement element, params string[] namestofind)
+        {
+            bool bFound = false;
+            foreach (string name in namestofind)
+            {
+                IEnumerable<XElement> testElems = element.Elements(name);
+                if (testElems.Count() > 0)
+                {
+                    bFound = true;
+
+                    foreach (var testElem in testElems)
+                        yield return testElem;
+                }
+              
+            }
+            if (!bFound)
+                throw new Exception(String.Format("Unable to find any elements with names: {0}", String.Join(", ", namestofind)));
+        }
     }
 }
