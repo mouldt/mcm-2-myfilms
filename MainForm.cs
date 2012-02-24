@@ -232,7 +232,7 @@ namespace MCM2MyFilms
                             movie.fsMovie = filemoviematches.First();
                             movie.fsMovie.IsInCatalog = true;
 
-                            if (movie.fsMovie.LastUpdated > movie.LastUpdated || movie.fsMovie.LastUpdated > GetAMCBackdropsFolderLastUpdated(movie))
+                            if (movie.fsMovie.LastUpdated > GetAMCBackdropsFolderLastUpdated(movie))
                                 movie.Status = AMCMovie.MovieStatus.StaleData;
                             else
                                 movie.Status = AMCMovie.MovieStatus.OK;
