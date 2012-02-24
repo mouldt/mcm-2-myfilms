@@ -5,11 +5,20 @@ using System.Text;
 using System.Drawing;
 using System.IO;
 using System.Xml.Linq;
+using System.Configuration;
+using System.Xml.XPath;
 
 namespace MCM2MyFilms
 {
     public class MCMMovie
     {
+        static MCMFieldMappingsSection MCMFieldMappings = null;
+        static MCMMovie()
+        {
+            MCMFieldMappings = ConfigurationManager.GetSection("MCMFieldMappings")
+                as MCMFieldMappingsSection;
+        }
+
         public class Person
         {
             public enum PersonType
@@ -27,32 +36,63 @@ namespace MCM2MyFilms
 
         public MCMMovie(string path)
         {
+            MCMFieldMapping mapping = null;
+
             Initialize();
             XDocument metadata = XDocument.Load(Path.Combine(path, "mymovies.xml"));
             XElement contents = metadata.Descendants("Title").First();
-            LocalTitle = contents.ElementByNames("LocalTitle").Value;
-            OriginalTitle = contents.ElementByNames("OriginalTitle").Value;
-            IMDBrating = float.Parse(contents.ElementByNames("IMDBrating").Value);
-            ProductionYear = int.Parse(contents.ElementByNames("ProductionYear").Value);
-            IMDBId = contents.ElementByNames("IMDbId").Value;
-            Language = contents.ElementByNames("Language").Value;
-            Country = contents.ElementByNames("Country").Value;
-            Description = contents.ElementByNames("Description").Value;
-            Director = contents.ElementByNames("Director").Value;
-            Tagline = contents.ElementByNames("Tagline", "TagLine").Value;
-            foreach (XElement person in contents.ElementByNames("Persons").ElementsByNames("Person"))
+
+            mapping = MCMFieldMappings.mappings.Find("LocalTitle");
+            LocalTitle = contents.XPathSelectElementByNames(mapping.XPath, mapping.MCMFieldNamesArray).Value;
+
+            mapping = MCMFieldMappings.mappings.Find("OriginalTitle");
+            OriginalTitle = contents.XPathSelectElementByNames(mapping.XPath, mapping.MCMFieldNamesArray).Value;
+
+            mapping = MCMFieldMappings.mappings.Find("IMDBrating");
+            IMDBrating = float.Parse(contents.XPathSelectElementByNames(mapping.XPath, mapping.MCMFieldNamesArray).Value);
+
+            mapping = MCMFieldMappings.mappings.Find("ProductionYear");
+            ProductionYear = int.Parse(contents.XPathSelectElementByNames(mapping.XPath, mapping.MCMFieldNamesArray).Value);
+
+            mapping = MCMFieldMappings.mappings.Find("IMDBId");
+            IMDBId = contents.XPathSelectElementByNames(mapping.XPath, mapping.MCMFieldNamesArray).Value;
+
+            mapping = MCMFieldMappings.mappings.Find("Language");
+            Language = contents.XPathSelectElementByNames(mapping.XPath, mapping.MCMFieldNamesArray).Value;
+
+            mapping = MCMFieldMappings.mappings.Find("Country");
+            Country = contents.XPathSelectElementByNames(mapping.XPath, mapping.MCMFieldNamesArray).Value;
+
+            mapping = MCMFieldMappings.mappings.Find("Description");
+            Description = contents.XPathSelectElementByNames(mapping.XPath, mapping.MCMFieldNamesArray).Value;
+
+            mapping = MCMFieldMappings.mappings.Find("Director");
+            Director = contents.XPathSelectElementByNames(mapping.XPath, mapping.MCMFieldNamesArray).Value;
+
+            mapping = MCMFieldMappings.mappings.Find("Tagline");
+            Tagline = contents.XPathSelectElementByNames(mapping.XPath, mapping.MCMFieldNamesArray).Value;
+
+            mapping = MCMFieldMappings.mappings.Find("PersonCollection");
+            foreach (XElement person in contents.XPathSelectElementsByNames(mapping.XPath, mapping.MCMFieldNamesArray))
             {
                 Person newPerson = new Person();
-                newPerson.Name = person.ElementByNames("Name").Value;
-                try { newPerson.Type = (Person.PersonType)Enum.Parse(typeof(Person.PersonType), person.ElementByNames("Type").Value); }
+
+                mapping = MCMFieldMappings.mappings.Find("PersonName");
+                newPerson.Name = person.XPathSelectElementByNames(mapping.XPath, mapping.MCMFieldNamesArray).Value;
+
+                mapping = MCMFieldMappings.mappings.Find("PersonType");
+                try { newPerson.Type = (Person.PersonType)Enum.Parse(typeof(Person.PersonType), person.XPathSelectElementByNames(mapping.XPath, mapping.MCMFieldNamesArray).Value); }
                 catch (ArgumentException)
                 {
                     newPerson.Type = Person.PersonType.Other;
-                    newPerson.PersonTypeOther = person.ElementByNames("Type").Value;
+                    newPerson.PersonTypeOther = person.XPathSelectElementByNames(mapping.XPath, mapping.MCMFieldNamesArray).Value;
                 }
-                newPerson.Role = person.ElementByNames("Role").Value;
+                mapping = MCMFieldMappings.mappings.Find("PersonRole");
+                newPerson.Role = person.XPathSelectElementByNames(mapping.XPath, mapping.MCMFieldNamesArray).Value;
                 Persons.Add(newPerson);
             }
+
+            mapping = MCMFieldMappings.mappings.Find("GenresCollection");
             foreach (string genre in contents.ElementByNames("Genres").ElementsByNames("Genre"))
                 Genres.Add(genre);
             
@@ -120,5 +160,125 @@ namespace MCM2MyFilms
             if (!bFound)
                 throw new Exception(String.Format("Unable to find any elements with names: {0}", String.Join(", ", namestofind)));
         }
+
+        public static XElement XPathSelectElementByNames(this XElement element, string expression, params string[] namestofind)
+        {
+            foreach (string name in namestofind)
+            {
+                XElement target = element.XPathSelectElement(expression+name);
+                if (target != null)
+                    return target;
+            }
+            throw new Exception(String.Format("Unable to find any MCM data with XPath: {0} and names: {1}", expression, String.Join(", ", namestofind)));
+        }
+
+        public static IEnumerable<XElement> XPathSelectElementsByNames(this XElement element, string expression, params string[] namestofind)
+        {
+            bool bFound = false;
+            foreach (string name in namestofind)
+            {
+                IEnumerable<XElement> testElems = element.XPathSelectElements(expression + name);
+                if (testElems.Count() > 0)
+                {
+                    bFound = true;
+
+                    foreach (var testElem in testElems)
+                        yield return testElem;
+                }
+
+            }
+            if (!bFound)
+                throw new Exception(String.Format("Unable to find any MCM data with XPath: {0} and names: {1}", expression, String.Join(", ", namestofind)));
+        }
+    }
+
+    public class MCMFieldMappingsSection : ConfigurationSection
+    {
+        [ConfigurationProperty("", IsDefaultCollection=true)]
+        public MCMFieldMappings mappings 
+        {
+            get { return (MCMFieldMappings)this[""]; }
+        }
+    }
+    public class MCMFieldMappings : ConfigurationElementCollection
+    {
+        public override ConfigurationElementCollectionType CollectionType
+        {
+            get
+            {
+                return ConfigurationElementCollectionType.BasicMap;
+            }
+        }
+        protected override string ElementName
+        {
+            get
+            {
+                return "Mapping";
+            }
+        }
+        protected override ConfigurationElement CreateNewElement()
+        {
+            return new MCMFieldMapping();
+        }
+        protected override object GetElementKey(ConfigurationElement element)
+        {
+            return ((MCMFieldMapping)element).FieldName;
+        }
+        public MCMFieldMapping Find(string name)
+        {
+            ConfigurationElement elem = BaseGet(name);
+            if (elem == null)
+                throw new Exception(String.Format("Unable to elements in configuration with name: {0}", name));
+            return elem as MCMFieldMapping;
+        }
+    }
+    public class MCMFieldMapping : ConfigurationElement
+    {
+        [ConfigurationProperty("FieldName", IsKey = true, IsRequired = true)]
+        public string FieldName
+        {
+            get
+            {
+                return (string)base["FieldName"];
+            }
+            set
+            {
+                base["FieldName"] = value;
+            }
+        }
+        [ConfigurationProperty("MCMFieldNames", IsRequired = true)]
+        public string MCMFieldNames
+        {
+            get
+            {
+                return (string)base["MCMFieldNames"];
+            }
+            set
+            {
+                base["MCMFieldNames"] = value;
+            }
+        }
+        public string[] MCMFieldNamesArray
+        {
+            get
+            {
+                string value = (string)base["MCMFieldNames"];
+                return value.Split(',');
+            }
+        }
+
+        [ConfigurationProperty("XPath", IsRequired = true)]
+        public string XPath
+        {
+            get
+            {
+                return (string)base["XPath"];
+            }
+            set
+            {
+                base["XPath"] = value;
+            }
+        }
+
     }
 }
