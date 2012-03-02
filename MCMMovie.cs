@@ -39,7 +39,7 @@ namespace MCM2MyFilms
             MCMFieldMapping mapping = null;
 
             Initialize();
-            XDocument metadata = XDocument.Load(Path.Combine(path, "mymovies.xml"));
+            XDocument metadata = XDocument.Load(Path.Combine(path, "movie.xml"));
             XElement contents = metadata.Descendants("Title").First();
 
             mapping = MCMFieldMappings.mappings.Find("LocalTitle");
