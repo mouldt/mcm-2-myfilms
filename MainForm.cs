@@ -411,7 +411,12 @@ namespace MCM2MyFilms
                                                 (string)movie.Attribute("Subtitles"),
                                                 (string)movie.Attribute("Size"),
                                                 (string)movie.Attribute("Disks"),
-                                                movie.Element("CustomFields") != null ? (string)movie.Element("CustomFields").Attribute("LastUpdated") : String.Empty
+                                                movie.Element("CustomFields") != null ? (string)movie.Element("CustomFields").Attribute("LastUpdated") : String.Empty,
+                                                movie.Element("CustomFields") != null ? (string)movie.Element("CustomFields").Attribute("Certification") : String.Empty,
+                                                movie.Element("CustomFields") != null ? (string)movie.Element("CustomFields").Attribute("Fanart") : String.Empty,
+                                                movie.Element("CustomFields") != null ? (string)movie.Element("CustomFields").Attribute("Studio") : String.Empty,
+                                                movie.Element("CustomFields") != null ? (string)movie.Element("CustomFields").Attribute("TagLine") : String.Empty,
+                                                movie.Element("CustomFields") != null ? (string)movie.Element("CustomFields").Attribute("Writer") : String.Empty
                                             );
             return movies.ToList<AMCMovie>();
         }
@@ -530,8 +535,15 @@ namespace MCM2MyFilms
                         new XAttribute("Size", movie.Size),
                         new XAttribute("Disks", movie.Disks),
                         new XAttribute("Picture", movie.Picture),
-                        new XElement("CustomFields", new XAttribute("LastUpdated", DateTime.Now.ToString("u")))
-                                                  );
+                        new XElement("CustomFields", 
+                                        new XAttribute("LastUpdated", DateTime.Now.ToString("u")),
+                                        new XAttribute("Certification", movie.Certification),
+                                        new XAttribute("Studio", movie.Studio),
+                                        new XAttribute("Writer", movie.Writer),
+                                        new XAttribute("Fanart", movie.Fanart),
+                                        new XAttribute("TagLine", movie.Tagline)
+                                    )
+                        );
             return xMovie;
         }
 
@@ -653,7 +665,7 @@ namespace MCM2MyFilms
         {
             XDocument catalog = GetAMCCatalog();
             XElement contents = GetAMCCatalogContents(catalog);
-            XElement xMovie = CreatexMovie(movie);
+            //XElement xMovie = CreatexMovie(movie);
             contents.Descendants("Movie").Where(x => uint.Parse(x.Attribute("Number").Value) == movie.Number).Remove();
 
             // Now Deal with ArtWork
@@ -725,13 +737,18 @@ namespace MCM2MyFilms
                 }
                 
             }
-            if (!String.IsNullOrWhiteSpace(mcmMovie.Tagline))
-                movie.Description = "\"" + mcmMovie.Tagline + "\"" + Environment.NewLine + mcmMovie.Description;
-            else
-                movie.Description = mcmMovie.Description;
+            //if (!String.IsNullOrWhiteSpace(mcmMovie.Tagline))
+            //    movie.Description = "\"" + mcmMovie.Tagline + "\"" + Environment.NewLine + mcmMovie.Description;
+            //else
+            movie.Description = mcmMovie.Description;
             movie.Comments = "";
             movie.URL = "http://akas.imdb.com/title/" + mcmMovie.IMDBId;
             movie.Disks = 1;
+            movie.Certification = mcmMovie.Certification;
+            movie.Studio = string.Join(", ", mcmMovie.Studios);
+            movie.Writer = mcmMovie.WritersList;
+            movie.Tagline = mcmMovie.Tagline;
+            movie.Fanart = mcmMovie.BackdropURL;
 
             //movie.Picture = RelativePath(Path.Combine(Path.GetDirectoryName(movie.fsMovie.FileName), "folder.jpg"), Path.GetDirectoryName(Properties.Settings.Default.AMCCatalog));
             movie.Picture = Path.Combine(Path.GetDirectoryName(movie.fsMovie.FileName), "folder.jpg"); 

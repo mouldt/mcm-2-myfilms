@@ -91,6 +91,12 @@ namespace MCM2MyFilms
             Status = movie.Status;
             Action = movie.Action;
             fsMovie = movie.fsMovie;
+
+            Certification = movie.Certification;
+            Fanart = movie.Fanart;
+            Studio = movie.Studio;
+            Tagline = movie.Tagline;
+            Writer = movie.Writer;
         }
 
         public AMCMovie(
@@ -125,7 +131,12 @@ namespace MCM2MyFilms
                         string Subtitles,
                         string Size,
                         string Disks,
-                        string LastUpdated
+                        string LastUpdated,
+                        string Certification,
+                        string Fanart,
+                        string Studio,
+                        string Tagline,
+                        string Writer
                        )
         {
             Initialize();
@@ -164,6 +175,11 @@ namespace MCM2MyFilms
             DateTime parsedDate;
             if (DateTime.TryParse(LastUpdated, out parsedDate))
                 this.LastUpdated = parsedDate;
+            this.Certification = Certification;
+            this.Fanart = Fanart;
+            this.Studio = Studio;
+            this.Tagline = Tagline;
+            this.Writer = Writer;
         }
 
         private void Initialize()
@@ -206,6 +222,12 @@ namespace MCM2MyFilms
             Status = MovieStatus.Unknown;
             Action = ActionType.Unset;
             fsMovie = null;
+            Certification = String.Empty;
+            Fanart = String.Empty;
+            Studio = String.Empty;
+            Tagline = String.Empty;
+            Writer = String.Empty;
+
         }
         private String _OriginalTitle;
         private uint _Number;
@@ -288,6 +310,12 @@ namespace MCM2MyFilms
         public MovieStatus Status { get; set; }
         public FileSystemMovie fsMovie { get; set; }
         public DateTime LastUpdated { get; set; }
+
+        public String Certification { get; set; }
+        public String Fanart { get; set; }
+        public String Studio { get; set; }
+        public String Tagline { get; set; }
+        public String Writer { get; set; }
 
         public String NumberFormatted
         {

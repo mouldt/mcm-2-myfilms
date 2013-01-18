@@ -69,6 +69,18 @@ namespace MCM2MyFilms
             mapping = MCMFieldMappings.mappings.Find("Director");
             Director = contents.SelectElementByXPaths(mapping.XPathArray).Value;
 
+            mapping = MCMFieldMappings.mappings.Find("FullCertifications");
+            FullCertifications = contents.SelectElementByXPaths(mapping.XPathArray).Value;
+
+            mapping = MCMFieldMappings.mappings.Find("MPAARating");
+            MPAARating = contents.SelectElementByXPaths(mapping.XPathArray).Value;
+
+            mapping = MCMFieldMappings.mappings.Find("BackdropURL");
+            BackdropURL = contents.SelectElementByXPaths(mapping.XPathArray).Value;
+
+            mapping = MCMFieldMappings.mappings.Find("WritersList");
+            WritersList = contents.SelectElementByXPaths(mapping.XPathArray).Value;
+
             mapping = MCMFieldMappings.mappings.Find("Tagline");
             Tagline = contents.SelectElementByXPaths(mapping.XPathArray).Value;
 
@@ -95,7 +107,17 @@ namespace MCM2MyFilms
             mapping = MCMFieldMappings.mappings.Find("GenresCollection");
             foreach (string genre in contents.SelectElementsByXPaths(mapping.XPathArray))
                 Genres.Add(genre);
-            
+
+            try
+            {
+                mapping = MCMFieldMappings.mappings.Find("StudiosCollection");
+                foreach (string studio in contents.SelectElementsByXPaths(mapping.XPathArray))
+                    Studios.Add(studio);
+            }
+            catch (Exception) // No Studios Found
+            {
+            }
+
         }
 
         private void Initialize()
@@ -110,8 +132,14 @@ namespace MCM2MyFilms
             Description = String.Empty;
             Director = String.Empty;
             Tagline = String.Empty;
+            FullCertifications = String.Empty;
+            MPAARating = String.Empty;
+            BackdropURL = String.Empty;
+            WritersList = String.Empty;
+
             Persons = new List<Person>();
-            Genres = new List<String>();            
+            Genres = new List<String>();
+            Studios = new List<String>();
         }
 
         public String LocalTitle { get; set; }
@@ -124,9 +152,22 @@ namespace MCM2MyFilms
         public String Description { get; set; }
         public String Director { get; set; }
         public String Tagline { get; set; }
+        public String FullCertifications { get; set; }
+        public String MPAARating { get; set; }
+        public String BackdropURL { get; set; }
+        public String WritersList { get; set; }
         public List<Person> Persons { get; set; }
         public List<String> Genres { get; set; }
+        public List<String> Studios { get; set; }
 
+        public string Certification 
+        {
+            get
+            {
+                string ukCert = FullCertifications.Split(new String[]{" | "}, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault<string>(e=>e.Contains("UK:"));
+                return String.IsNullOrEmpty(ukCert) ? MPAARating :  ukCert.Split(':').Last();
+            }
+        }
     }
 
     public static class LinqToXMLExtensions
