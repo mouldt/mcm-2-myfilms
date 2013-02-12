@@ -416,7 +416,8 @@ namespace MCM2MyFilms
                                                 movie.Element("CustomFields") != null ? (string)movie.Element("CustomFields").Attribute("Fanart") : String.Empty,
                                                 movie.Element("CustomFields") != null ? (string)movie.Element("CustomFields").Attribute("Studio") : String.Empty,
                                                 movie.Element("CustomFields") != null ? (string)movie.Element("CustomFields").Attribute("TagLine") : String.Empty,
-                                                movie.Element("CustomFields") != null ? (string)movie.Element("CustomFields").Attribute("Writer") : String.Empty
+                                                movie.Element("CustomFields") != null ? (string)movie.Element("CustomFields").Attribute("Writer") : String.Empty,
+                                                movie.Element("CustomFields") != null ? (string)movie.Element("CustomFields").Attribute("MultiUserState") : String.Empty
                                             );
             return movies.ToList<AMCMovie>();
         }
@@ -541,7 +542,8 @@ namespace MCM2MyFilms
                                         new XAttribute("Studio", movie.Studio),
                                         new XAttribute("Writer", movie.Writer),
                                         new XAttribute("Fanart", movie.Fanart),
-                                        new XAttribute("TagLine", movie.Tagline)
+                                        new XAttribute("TagLine", movie.Tagline),
+                                        new XAttribute("MultiUserState", movie.MultiUserState)
                                     )
                         );
             return xMovie;

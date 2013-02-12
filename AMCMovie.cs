@@ -97,6 +97,7 @@ namespace MCM2MyFilms
             Studio = movie.Studio;
             Tagline = movie.Tagline;
             Writer = movie.Writer;
+            MultiUserState = movie.MultiUserState;
         }
 
         public AMCMovie(
@@ -136,7 +137,8 @@ namespace MCM2MyFilms
                         string Fanart,
                         string Studio,
                         string Tagline,
-                        string Writer
+                        string Writer,
+                        string MultiUserState
                        )
         {
             Initialize();
@@ -180,6 +182,7 @@ namespace MCM2MyFilms
             this.Studio = Studio;
             this.Tagline = Tagline;
             this.Writer = Writer;
+            this.MultiUserState = MultiUserState;
         }
 
         private void Initialize()
@@ -227,6 +230,7 @@ namespace MCM2MyFilms
             Studio = String.Empty;
             Tagline = String.Empty;
             Writer = String.Empty;
+            MultiUserState = "Default:0:-1:";
 
         }
         private String _OriginalTitle;
@@ -316,7 +320,8 @@ namespace MCM2MyFilms
         public String Studio { get; set; }
         public String Tagline { get; set; }
         public String Writer { get; set; }
-
+        public String MultiUserState { get; set; }
+        
         public String NumberFormatted
         {
             get
