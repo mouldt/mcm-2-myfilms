@@ -1,0 +1,1 @@
+This is a conversion utility that will treat a 'Media Center Master' film repository as the master and will create/update an ANT Movie Catalog and mediaportal My Films folders for use with the My Films plugin for mediaportal
